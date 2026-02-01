@@ -10,9 +10,8 @@ namespace BudgetPlanner
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-   
+            //Set culture to sv-SE to get currency in SEK
             var culture = new CultureInfo("sv-SE");
-
     
             CultureInfo.DefaultThreadCurrentCulture = culture;
             CultureInfo.DefaultThreadCurrentUICulture = culture;
