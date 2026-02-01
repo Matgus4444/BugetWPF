@@ -1,0 +1,167 @@
+﻿<UserControl x:Class="BudgetPlanner.Views.MainView"
+             x:Name="Root"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:BudgetPlanner.ViewModels"
+             xmlns:local="clr-namespace:BudgetPlanner.Views.Converters"
+             Height="450" Width="800">
+
+    <!-- Set the ViewModel for this view -->
+    <UserControl.DataContext>
+        <vm:MainViewModel />
+    </UserControl.DataContext>
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <!-- Yearly Income Input -->
+            <RowDefinition Height="*"/>
+            <!-- DataGrid -->
+            <RowDefinition Height="Auto"/>
+            <!-- Summary and Buttons -->
+        </Grid.RowDefinitions>
+
+        <!-- ===== Yearly Income Input ===== -->
+        <StackPanel Orientation="Horizontal" Grid.Row="0" Margin="0,0,0,10">
+            <TextBlock Text="Årsinkomst: "
+                       VerticalAlignment="Center"
+                       Style="{StaticResource LabelTextStyle}"/>
+            <TextBox Width="120"
+                     Text="{Binding YearlyIncome, UpdateSourceTrigger=PropertyChanged}">
+                <!-- Update Monthly Income when focus leaves the textbox -->
+                <i:Interaction.Triggers>
+                    <i:EventTrigger EventName="LostFocus">
+                        <i:InvokeCommandAction Command="{Binding YearlyIncomeLostFocusCommand}" />
+                    </i:EventTrigger>
+                </i:Interaction.Triggers>
+            </TextBox>
+        </StackPanel>
+
+        <!-- ===== Budget Items DataGrid ===== -->
+        <DataGrid Grid.Row="1"
+                  ItemsSource="{Binding Items}"
+                  SelectedItem="{Binding SelectedItem}"
+                  AutoGenerateColumns="False"
+                  CanUserAddRows="False"
+                  Margin="0,0,0,10">
+
+            <DataGrid.Columns>
+                <!-- Name Column -->
+                <DataGridTextColumn Header="Namn"
+                                    Binding="{Binding Name, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="*"/>
+
+                <!-- Amount Column -->
+                <DataGridTextColumn Header="Belopp"
+                                    Binding="{Binding Amount, UpdateSourceTrigger=PropertyChanged}"
+                                    Width="100"/>
+
+                <!-- Category Column -->
+                <DataGridTemplateColumn Header="Kategori" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Category}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding Type, Converter={StaticResource CategoryListConverter}}"
+                                      SelectedItem="{Binding Category, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Type Column with localized display -->
+                <DataGridTemplateColumn Header="Typ" Width="100">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Type, Converter={StaticResource ItemTypeToDisplayConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.ItemTypes, ElementName=Root}"
+                                      SelectedItem="{Binding Type, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource ItemTypeToDisplayConverter}}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+
+                <!-- Recurrence Column with localized display -->
+                <DataGridTemplateColumn Header="Återkommande" Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Recurrence, Converter={StaticResource RecurrenceToDisplayConverter}}"/>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                    <DataGridTemplateColumn.CellEditingTemplate>
+                        <DataTemplate>
+                            <ComboBox ItemsSource="{Binding DataContext.RecurrenceTypes, ElementName=Root}"
+                                      SelectedItem="{Binding Recurrence, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding Converter={StaticResource RecurrenceToDisplayConverter}}"/>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellEditingTemplate>
+                </DataGridTemplateColumn>
+
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ===== Summary and Controls ===== -->
+        <StackPanel Grid.Row="2">
+
+            <!-- ===== Add / Remove Buttons + Yearly Month Selector ===== -->
+            <StackPanel Orientation="Horizontal" Grid.Row="2" Margin="0,5,0,0" VerticalAlignment="Center">
+
+                <!-- Add / Remove Buttons -->
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="Lägg till" Command="{Binding AddItemCommand}" Margin="0,0,5,0"/>
+                    <Button Content="Ta bort" Command="{Binding RemoveItemCommand}"/>
+                </StackPanel>
+
+                <!-- Spacer between buttons and month selector -->
+                <Rectangle Width="20" Fill="Transparent"/>
+
+                <!-- Yearly Month Selector (visible only for Yearly recurring items) -->
+                <StackPanel Orientation="Horizontal"
+                Visibility="{Binding SelectedItem.Recurrence, Converter={StaticResource ShowOnYearlyOnlyConverter}}">
+                    <TextBlock Text="Återkommande månad:"
+                   Style="{StaticResource LabelTextStyle}" VerticalAlignment="Center"/>
+                    <ComboBox ItemsSource="{Binding MonthItems}"
+                  SelectedValue="{Binding SelectedItem.YearlyMonth, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                  SelectedValuePath="Number"
+                  DisplayMemberPath="Name"
+                  Width="120"/>
+                </StackPanel>
+
+            </StackPanel>
+
+            <!-- Current Month Summary -->
+            <TextBlock Text="— Aktuell månad —"
+                       Style="{StaticResource SectionHeaderTextStyle}"/>
+            <TextBlock Text="{Binding CurrentMonthIncome, StringFormat='Inkomster: {0:C}'}"/>
+            <TextBlock Text="{Binding CurrentMonthExpenses, StringFormat='Utgifter: {0:C}'}"/>
+            <TextBlock Text="{Binding CurrentMonthTotal, StringFormat='Totalt: {0:C}'}"
+                       Style="{StaticResource LabelTextStyle}" FontWeight="Bold"/>
+
+            <!-- Next Month Summary -->
+            <TextBlock Text="— Nästa månad —"
+                       Style="{StaticResource SectionHeaderTextStyle}"/>
+            <TextBlock Text="{Binding NextMonthIncome, StringFormat='Inkomster: {0:C}'}"/>
+            <TextBlock Text="{Binding NextMonthExpenses, StringFormat='Utgifter: {0:C}'}"/>
+            <TextBlock Text="{Binding NextMonthTotal, StringFormat='Totalt: {0:C}'}"
+                       Style="{StaticResource LabelTextStyle}" FontWeight="Bold"/>
+
+        </StackPanel>
+    </Grid>
+</UserControl>
