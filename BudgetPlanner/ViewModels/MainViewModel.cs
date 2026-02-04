@@ -167,7 +167,7 @@ namespace BudgetPlanner.ViewModels
                     {
                         RecurrenceType.Monthly => i.Amount,
                         RecurrenceType.Yearly => i.YearlyMonth == month ? i.Amount : 0,
-                        RecurrenceType.OneTime => i.Amount,
+                        RecurrenceType.OneTime => i.Recurrence == RecurrenceType.OneTime && month == DateTime.Now.Month ? i.Amount : 0,
                         _ => 0
                     };
                 });
