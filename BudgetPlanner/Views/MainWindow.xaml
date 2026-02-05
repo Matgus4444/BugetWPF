@@ -75,9 +75,9 @@
                 <!-- Type Column with localized display -->
                 <DataGridTemplateColumn Header="Typ" Width="100">
                     <DataGridTemplateColumn.CellTemplate>
-                        <DataTemplate>
-                            <TextBlock Text="{Binding Type, Converter={StaticResource ItemTypeToDisplayConverter}}"/>
-                        </DataTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Type, Converter={StaticResource ItemTypeToDisplayConverter}}"/>
+                            </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                     <DataGridTemplateColumn.CellEditingTemplate>
                         <DataTemplate>
